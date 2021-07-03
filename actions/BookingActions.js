@@ -116,7 +116,9 @@ export const validatePostcode = (postcode, service, navigation) => {
     let response = await dispatch(validateBookingService(postcode, service));
 
     dispatch(setLoading(false))
+    console.log("responsee", response)
     if (response.success) {
+     
       if (response.result === 'success') {
         navigation.navigate({
           name:'Service',

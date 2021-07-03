@@ -13,7 +13,7 @@ import { CardField, useStripe, StripeProvider } from '@stripe/stripe-react-nativ
 // import {CardElement} from '@stripe/react-stripe-js';
 // import {useElements, useStripe} from '@stripe/react-stripe-js';
 import { deleteTimeSlots } from '../../actions/TimeSlotActions';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 function PaymentScreen() {
     const { confirmPayment } = useStripe();
@@ -126,16 +126,14 @@ function PaymentPage(props) {
     return (
 
         <View className="payment-page">
-            {window.innerWidth < 768 && <View><MobileCartInfo total={total} cart={cart} /></View>}
+             <View><MobileCartInfo total={total} cart={cart} /></View>
             <View className="summary-wrapper">
                 <View className="summary-col">
-                    <PaymentScreen/>
+                    {/* <PaymentScreen/> */}
                     <PaymentInfo>
-                        <StripeProvider
-                        
-                        >
+                        {/* <StripeProvider> */}
                             <PaymentScreen />
-                        </StripeProvider>
+                        {/* </StripeProvider> */}
                         {/* <CardElement
                             options={{
                                 style: {
@@ -159,7 +157,7 @@ function PaymentPage(props) {
                             </View>
                         )}
                         {/* Show a success message upon completion */}
-                        <Text className={succeeded ? "result-message" : "result-message hidden"}>
+                        <Text style={succeeded ? styles.resultMessage : {...styles.resultMessageHidden, display:"none"}}>
                             Payment succeeded, see the result in your
                             <Text
                                 href={`https://dashboard.stripe.com/test/payments`}
@@ -170,17 +168,10 @@ function PaymentPage(props) {
                             </Text>
                         </Text>
 
-                        {stripeTravelClientSecret && stripeServiceClientSecret && window.innerWidth < 768 && <StepsNavigationFooter title="Pay Now" onNext={() => pay()} onPrev={props.onPrev} />}
+                        {stripeTravelClientSecret && stripeServiceClientSecret &&  <StepsNavigationFooter title="Pay Now" onNext={() => pay()} onPrev={props.onPrev} />}
                     </PaymentInfo>
                 </View>
-                <View style={{ display: "flex", flexFlow: "column" }}>
-                    {stripeTravelClientSecret && stripeServiceClientSecret && window.innerWidth >= 768 &&
-                        <>
-                            <CartInfo total={total} cart={cart} />
-                            <StepsNavigationFooter title="Pay Now" onNext={() => pay()} onPrev={props.onPrev} />
-                        </>
-                    }
-                </View>
+               
 
             </View>
 
@@ -189,3 +180,11 @@ function PaymentPage(props) {
 }
 
 export default PaymentPage;
+
+
+const styles = StyleSheet.create({
+    resultMessage:{
+
+    }
+
+});

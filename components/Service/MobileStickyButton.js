@@ -3,7 +3,6 @@ import React, { useState, useRef } from 'react';
 import StickyCard from './StickyCard';
 import { Badge } from 'react-native-elements'
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
-import SvgUri from 'react-native-svg-uri';
 import Drawer from 'react-native-drawer'
 import Button from '../common/Button';
 import Text from '../common/Text';

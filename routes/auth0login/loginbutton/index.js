@@ -126,25 +126,11 @@ function LoginButton() {
     AsyncStorage.getItem("accessToken").then(accessToken => {
 
       var decoded = jwt_decode(accessToken);
-      console.log("selam", decoded.exp, moment().unix(), decoded.exp > moment().unix())
       if (decoded.exp > moment().unix()) {
-
-        // return false
-        // auth0.auth
-        //   .userInfo({ token: accessToken })
-        //   .then(data => {
-        //     console.log("aaaaaa", data)
-        //     setAuthenticated(true);
-        //   })
-        //   .catch(err => {
-        //     console.log("err", err)
         setAuthenticated(false);
-        //     // next: add code for dealing with invalid access token
-        //   });
+       
       } else {
-        // no access token
         setAuthenticated(true);
-        // return true;
 
       }
     })

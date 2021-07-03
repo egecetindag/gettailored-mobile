@@ -22,8 +22,14 @@ import TimeSlotPage from '../TimeSlotPage';
 import Loading from '../../components/common/Loading';
 import Layout from '../../components/common/Layout';
 import Text from '../../components/common/Text';
-import { View } from 'react-native';
+import { View,AsyncStorage } from 'react-native';
+import jwt_decode from "jwt-decode";
 import PaymentPage from '../PaymentPage';
+import * as AppAuth from "expo-auth-session";
+import moment from 'moment'
+
+const auth0Domain = "https://dev-nebce-qf.eu.auth0.com";
+const auth0ClientId = "Z40hKySNWVoHEJsbYv8qiF9AHwjmPBDO"
 const customIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42 42" className="am-icon am-icon-md">
     <g fillRule="evenodd" stroke="transparent" strokeWidth="4">
@@ -41,8 +47,9 @@ function Flow(props) {
   const navigation = useNavigation();
   const params = props.route.params;
   const dispatch = useDispatch();
-  const auth0 = new Auth0({ domain: 'dev-nebce-qf.eu.auth0.com', clientId: 'Z40hKySNWVoHEJsbYv8qiF9AHwjmPBDO' });
+  const [isAuthenticated, setAuthenticated] = useState(false);
   // const { isLoading, isAuthenticated, loginWithRedirect } = useAuth0();
+  
   const [bookingId, setBookingId] = useState();
   const { loading } = useSelector(state => ({
     loading: state.global.loading,
@@ -54,6 +61,8 @@ function Flow(props) {
         merchantIdentifier: 'merchant.identifier',
       });
     // window.scrollTo(0, 0)
+    console.log("detectLogin")
+    detectLogin();
     if (Number(params.step) !== 1 && Number(params.step) !== 2 && Number(params.step) !== 3 && Number(params.step) !== 4) {
       // history.replace("/service/" + params.type + "/1")
       navigation.navigate({ name: 'Service', params: { type: params.type, step: "1" } })
@@ -63,12 +72,75 @@ function Flow(props) {
     }
   }, [])
 
+  const detectLogin = async () => {
+
+    AsyncStorage.getItem("accessToken").then(accessToken => {
+      var decoded = jwt_decode(accessToken);
+      if (decoded.exp > moment().unix()) {
+        console.log("aaaa")
+        setAuthenticated(true);
+      } else {
+        console.log("bbbb")
+        setAuthenticated(false);
+      }
+    })
+  }
 
 
-  const next = (val) => {
-    console.log("nexttt", val)
+  const loginWithRedirect = async () => {
+    const redirectUrl = AppAuth.makeRedirectUri({ useProxy: true });
+
+    const discovery = await AppAuth.fetchDiscoveryAsync(auth0Domain);
+    const authRequestOptions = {
+      usePKCE: true,
+      responseType: AppAuth.ResponseType.Code,
+      clientId: auth0ClientId,
+      redirectUri: redirectUrl,
+      prompt: AppAuth.Prompt.Login,
+      scopes: ["openid", "profile", "email", "offline_access", "crud:list"],
+      extraParams: {
+        audience: "esclot-api",
+        access_type: "offline",
+      },
+    };
+    const authRequest = new AppAuth.AuthRequest(authRequestOptions);
+
+    const authorizeResult = await authRequest.promptAsync(discovery, {
+      useProxy: true,
+    });
+    console.log("authResult", authorizeResult)
+    const tokenResult = await AppAuth.exchangeCodeAsync(
+      {
+        code: authorizeResult.params.code,
+        clientId: auth0ClientId,
+        redirectUri: redirectUrl,
+        extraParams: {
+          code_verifier: authRequest.codeVerifier || "",
+        },
+      },
+      discovery
+    );
+    console.log("Authorize result", tokenResult);
+
+    if (tokenResult.accessToken) {
+      let token = tokenResult.accessToken;
+      AsyncStorage.setItem("accessToken", token).then(
+        result => {
+          console.log("accessTokenSet", result)
+         
+
+          setAuthenticated(true)
+        }
+
+      )
+    }
+  }
+  
+  const next = async (val) => {
+    await detectLogin();
     val && setBookingId(val);
     navigation.navigate({ name: 'Service', params: { type: params.type, step: (params.step ? Number(params.step) + 1 : 1) } })
+    
     // navigation.navigate("/service/" + params.type + "/" + (params.step ? Number(params.step) + 1 : 1))
     // history.push("/service/" + params.type + "/" + (params.step ? Number(params.step) + 1 : 1))
     // window.scrollTo(0, 0)
@@ -81,13 +153,13 @@ function Flow(props) {
     // history.push("/service/" + params.type + "/" + (params.step ? Number(params.step) - 1 : 1))
     // window.scrollTo(0, 0)
   };
+  console.log("login with", isAuthenticated)
+    if (!isAuthenticated && (params.step === 2 || params.step === 3 || params.step === 4)) {
+  
+      loginWithRedirect();
+      return null;
+    }
 
-
-  //   if (!isAuthenticated && (params.step === '2' || params.step === '3' || params.step === '4')) {
-  //     loginWithRedirect({ redirectUri: window.location.href });
-  //     return null;
-  //   }
-  console.log("numberr", Number(params.step))
   return (
     <>
       {loading && <Loading />}
@@ -111,7 +183,7 @@ function Flow(props) {
 
             {/* </View> */}
           </ProgressStep>
-  
+       
           <ProgressStep topOffset={10} removeBtnRow={true} scrollable={false} label="Your Address">
             <View >
               <AddressPage onNext={next} params={props.route.params} />

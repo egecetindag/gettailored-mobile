@@ -4,14 +4,13 @@ import Text from '../common/Text';
 import { View , StyleSheet} from 'react-native';
 import Button from '../common/Button';
 import SvgUri from 'react-native-svg-uri';
-import { NavigationEvents } from 'react-navigation';
 
 function ServiceCategory(props) {
 
   return (
     <Button onClick={props.onClick} style={props.active ? {...styles.service,...styles.active} : styles.service}>
         <View style={styles.circle}>
-           <SvgUri height="50" sstyle={styles.img} source={{uri:props.icon}} />
+           <SvgUri height="50"  source={{uri:props.icon}} />
         </View>
         <Text size="xss" >{props.name}</Text>
     </Button>

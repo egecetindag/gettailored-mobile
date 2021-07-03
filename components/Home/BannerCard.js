@@ -19,7 +19,7 @@ function BannerCard({ img, title, desc, onClick }) {
 }
 const styles = StyleSheet.create({
     bannerCardStyle:{
-       flex:1,
+       
         alignItems:"center",
         justifyContent:"center",
         backgroundColor:"transparent",
@@ -27,13 +27,13 @@ const styles = StyleSheet.create({
         borderWidth:1,
         marginTop:20,
         paddingVertical:20,
-        paddingHorizontal:40,
+  
         paddingTop:60,
         height:250,
         marginVertical:40
     },
     titleStyle:{
-        fontSize:24,
+        fontSize:23,
         color:'white',
         borderWidth:1,
         borderColor:'white',

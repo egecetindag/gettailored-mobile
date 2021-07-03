@@ -27,7 +27,7 @@ function Header(props) {
   }
   const checkPostcode = (val) =>{
     console.log("aaa", val)
-    dispatch(validatePostcode(val.postcode, val.radio === 1 ? 'premium' :'self', navigation))
+    dispatch(validatePostcode(val.postcode, val.radio === 1 ? 'prime' :'self', navigation))
   }
   return (
     <>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 // import { Form, Select, Badge, Slider } from 'antd';
+
 import ServiceCard from '../../components/Service/ServiceCard';
 import ServiceCategory from '../../components/Service/ServiceCategory';
 import ServiceLine, { ServiceLineCart } from '../../components/Service/ServiceLine';
@@ -14,10 +15,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import Cart from '../../components/Service/Cart';
 import Button from '../../components/common/Button';
 import MobileStickyButton from '../../components/Service/MobileStickyButton';
-import { View, StyleSheet, ScrollView, Modal, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Modal, TouchableOpacity, Picker, Text } from 'react-native';
+// import {Picker} from '@react-native-community/picker';
 // import Ruler from '../../components/Common/Ruler';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
+import { Formik } from 'formik';
 
 function Service(props) {
   const dispatch = useDispatch();
@@ -39,14 +42,14 @@ function Service(props) {
     inputs: state.service.serviceInputs
   }));
 
-
   const addToCartCallback = (serviceName, cost, code) => {
     setSelectedService({ name: serviceName, cost: cost, code: code });
     if (cart && cart.length === 0) {
       dispatch(setCartType(params.type))
     }
     if (params.type === "self" && inputs[code] && inputs[code].length > 0) {
-      inputRef.current.scrollIntoView();
+      // inputRef.current.scrollIntoView();
+      serviceRef.current?.scrollToEnd()
     }
     else {
       dispatch(addCartItem(selectedCategory.name, serviceName, cost, code));
@@ -54,7 +57,6 @@ function Service(props) {
 
   }
   const addCartSelfService = (values) => {
-
     let inputArr = [];
     Object.keys(values).map(key => {
       if (key !== "otherColor") {
@@ -89,71 +91,84 @@ function Service(props) {
     setTotal(total);
   }, [cart])
   useEffect(() => {
-    if(selectedCategory){
+    if (selectedCategory) {
       serviceRef.current?.scrollTo({ x: 0, y: 700, animated: "true" });
     }
-    
+
   }, [selectedCategory])
 
   return (
     <View style={{ background: "red", flex: 1 }}>
       <ScrollView ref={serviceRef} style={{ background: "red", flex: 1 }}>
-        <View ref={categoriesColRef} style={styles.categoriesRow}>
+        <View style={styles.categoriesRow}>
           <View>
-          <ServiceCard title="Choose a Category">
-            <View style={styles.categoriesRow}>
-              {services.map((category, i) =>
-                <ServiceCategory key={i} active={i === selectedCategoryId}
-                  onClick={() => {
-                    setSelectedCategory(category);
-                   
-                    
-                    // setModalVisible2(true);
-                    // setSelectedCategoryId(i);
-                    // setSelectedService({});
-                    // setSelectOpt(undefined) 
-                  }}
-                  icon={category.icon}
-                  name={category.name} />
-              )}
-            </View>
-          </ServiceCard>
+            <ServiceCard title="Choose a Category">
+              <View style={styles.categoriesRow}>
+                {services.map((category, i) =>
+                  <ServiceCategory key={i} active={i === selectedCategoryId}
+                    onClick={() => {
+                      setSelectedCategory(category);
+
+
+                      // setModalVisible2(true);
+                      // setSelectedCategoryId(i);
+                      // setSelectedService({});
+                      // setSelectOpt(undefined) 
+                    }}
+                    icon={category.icon}
+                    name={category.name} />
+                )}
+              </View>
+            </ServiceCard>
 
           </View>
-          
+        </View>
 
-       
-            {selectedCategory &&
-              <ServiceCard title="Choose a Service" >
-                <View className="services-row">
-                  {selectedCategory.services.map((service, i) =>
-                    <ServiceLine
-                      active={service.code === selectedService.code}
-                      key={i} addCartItem={() => {
-                        addToCartCallback(service.name, service.cost, service.code);
-                        // form.resetFields(); 
-                        setSelectOpt(undefined)
-                      }}
-                      name={service.name} cost={service.cost} />)}
-                </View>
-              </ServiceCard>
-            }
-
-
-          <View ref={inputRef} />
-          {/* {params.type === "self" && inputs[selectedService.code] && inputs[selectedService.code].length > 0 &&
-            <ServiceCard title="Inputs" style={{ paddingRight: "20px" }} >
+        <View style={styles.categoriesRow}>
+          {selectedCategory &&
+            <ServiceCard title="Choose a Service" >
+              <View className="services-row">
+                {selectedCategory.services.map((service, i) =>
+                  <ServiceLine
+                    active={service.code === selectedService.code}
+                    key={i} addCartItem={() => {
+                      addToCartCallback(service.name, service.cost, service.code);
+                      // form.resetFields(); 
+                      setSelectOpt(undefined)
+                    }}
+                    name={service.name} cost={service.cost} />)}
+              </View>
+            </ServiceCard>
+          }
+        </View>
+        <View style={styles.categoriesRow}>
+          {params.type === "self" && inputs[selectedService.code] && inputs[selectedService.code].length > 0 &&
+            <ServiceCard title="Inputs"  >
               <View className="inputs-row">
-                <Form
-                  form={form}
-                  onFinish={addCartSelfService}
-                  {...formItemLayout}
+                <Formik
+                  onSubmit={addCartSelfService}
                   name="register"
-                  scrollToFirstError
+                  initialValues={{}}
                 >
-                  {inputs[selectedService.code].map(inp =>
-                    <>
-                      <Form.Item
+                  {({ handleChange, handleBlur, handleSubmit, setFieldValue, values }) => {
+                    let a = inputs[selectedService.code].map(inp =>
+                      <>
+                        <Text style={{ marginLeft: 10, marginBottom: 10, fontSize: 15 }}>{`*${inp.name} (${inp.desc})`}</Text>
+                        <View style={styles.pickerView}>
+                          <Picker
+                            selectedValue={values[inp.code]}
+                            style={styles.picker}
+                            onValueChange={handleChange(inp.code)}
+                          >
+                            {inp.options && inp.options.map(option =>
+                              <Picker.Item label={
+                                option.value
+                              } value={option.value} />
+                            )}
+                          </Picker>
+                        </View>
+
+                        {/* <Form.Item
                         shouldUpdate={(prevValues, curValues) => prevValues.additional !== curValues.additional}
                         label={`${inp.name} (${inp.desc})` }
                         name={inp.code}
@@ -177,9 +192,9 @@ function Service(props) {
                               </Select.Option>)}
                           </Select>
                         }
-                      </Form.Item>
+                      </Form.Item> */}
 
-                      {(inp.code === "color" && opt === "other") ?
+                        {/* {(inp.code === "color" && opt === "other") ?
                         <Form.Item
                           name="otherColor"
                           label="Other Color Name"
@@ -187,18 +202,25 @@ function Service(props) {
                         ><Input />
                         </Form.Item> :
 
-                        ""}
-                    </>
+                        ""} */}
+                      </>
 
-                  )}
+                    );
+                    return <>{a}
+                      <Button onClick={handleSubmit} style={styles.btnStyle} type="primary">
+                        <Text style={{ color: "white" }} >Add to cart</Text>
+                      </Button>
+                    </>;
+                  }}
 
-                  <Button type="primary" htmlType="submit">
+                  {/* <Button type="primary" htmlType="submit">
                     Add to cart
-                    </Button>
-                </Form>
+                    </Button> */}
+                </Formik>
+
               </View>
             </ServiceCard>
-          }*/}
+          }
         </View>
 
       </ScrollView>
@@ -206,7 +228,7 @@ function Service(props) {
         animationType="slide"
         visible={modalVisible}
         onRequestClose={() => {
-          Alert.alert("Modal has been closed.");
+          // Alert.alert("Modal has been closed.");
           setModalVisible(!modalVisible);
         }}
       >
@@ -216,6 +238,7 @@ function Service(props) {
       <View>
         <MobileStickyButton cart={cart} setModalVisible={setModalVisible}>
           {/* <Cart cart={cart} total={total} next={next} deleteItem={deleteItem} /> */}
+
         </MobileStickyButton></View>
     </View>
 
@@ -225,6 +248,10 @@ function Service(props) {
 export default Service;
 
 const styles = StyleSheet.create({
+  btnStyle: {
+    color: "white",
+    marginTop: 20
+  },
   img: {
     width: 40
   },
@@ -232,10 +259,21 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center"
-
+    justifyContent: "center",
 
   },
+  pickerView: {
+    backgroundColor: "white",
+    marginLeft: 10,
+    borderRadius: 10,
+    width: 150,
 
+  },
+  picker: {
+    height: 40,
+    width: 150,
+    marginLeft: 10,
+
+  }
 
 });

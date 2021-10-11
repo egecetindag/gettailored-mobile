@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Provider, useDispatch } from 'react-redux';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -8,9 +8,12 @@ import Home from './routes/Home';
 import Faq from './routes/FAQ';
 import About from './routes/About';
 import Flow from './routes/Flow';
+import Profile from './routes/ProfilePage';
+import Orders from './routes/OrdersPage'
 import CustomDrawerContent from './components/common/CustomDrawerContent'
-import {store} from './store';
+import { store } from './store';
 import { getServices } from './actions/ServiceActions';
+import { Auth0Provider } from './network/auth0';
 const Stack = createStackNavigator();
 const stackScreenOpts = {
   header: { visible: false }
@@ -40,19 +43,36 @@ function MainDrawerNavigation() {
 
   useEffect(() => {
     // getUserMetadata();
+    StatusBar.setBarStyle('light-content', true);
     dispatch(getServices());
   }, [])
   return (
+    <Auth0Provider
+    clientId="Z40hKySNWVoHEJsbYv8qiF9AHwjmPBDO"
+    audience= "esclot-api"
+    domain="dev-nebce-qf.eu.auth0.com"
+    onLogin={() => {
+      // Replace with your navigation code
+    }}
+    onTokenRequestFailure={() => {
+      // Replace with your navigation code
+    }}
+  >
+
     <Drawer.Navigator
       initialRouteName="Home"
       drawerContent={(props) => (
         <CustomDrawerContent drawerItems={drawerItemsMain} {...props} />
       )}>
+      <Drawer.Screen name="Profile" component={Profile} />
+      <Drawer.Screen name="Orders" component={Orders} />
       <Drawer.Screen name="Home" component={Home} />
       <Drawer.Screen name="Faq" component={Faq} />
       <Drawer.Screen name="About" component={About} />
       <Drawer.Screen name="Service" component={Flow} />
     </Drawer.Navigator>
+     
+  </Auth0Provider>
   );
 }
 

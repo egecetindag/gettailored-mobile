@@ -27,7 +27,6 @@ function timeoutPromise(ms, promise) {
   return async (dispatch, getState) => {
 
     const accessToken = await AsyncStorage.getItem("accessToken");
-    console.log("cokguzel", accessToken)
     try {
       const req = {
         method: options.method || 'POST',

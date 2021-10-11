@@ -7,7 +7,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 function TimeslotButton({ text, active, onSelectHour, type, onSwitch, checked }) {
     return (
         <TouchableOpacity onPress={onSelectHour} style={active ? styles.timeslotActive : styles.timeslotButton} >
-            <Text style={active ? {color:"white"}:{}}>{text}</Text>
+            <Text style={active ? { color: "white" } : {}}>{text}</Text>
         </TouchableOpacity>
     )
 }
@@ -19,7 +19,7 @@ function TimeSlotPicker(props) {
         setDatePickerVisible(false);
         props.onChange(value)
     }
-    console.log("activeHourrr", props.selectedDate)
+    console.log("activeHourrr", props.disabledDate)
     var momentSelectedDate = props.selectedDate ? moment(props.selectedDate, 'YYYY-MM-DDT') : undefined
     return (
 
@@ -28,6 +28,7 @@ function TimeSlotPicker(props) {
 
                 <View style={styles.select}><Text onPress={() => setDatePickerVisible(true)}>{props.selectedDate ? momentSelectedDate.format("DD-MM-YYYY") : "Please select a date"}</Text></View>
                 <DateTimePickerModal
+                    minimumDate={moment(props.disabledDate()).toDate()}
                     isVisible={isDatePickerVisible}
                     mode="date"
                     onConfirm={handleConfirm}

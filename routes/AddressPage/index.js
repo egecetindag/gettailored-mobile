@@ -11,6 +11,7 @@ import { setErrorMsg } from '../../actions/GlobalActions';
 import { validateBooking } from '../../actions/BookingActions';
 import MobileCartInfo from '../../components/Summary/MobileCartInfo';
 import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import * as yup from 'yup';
 function AddressPage(props) {
 	const [total, setTotal] = useState(0);
 	const [postcodeInterval, setPostcodeInterval] = useState(null);
@@ -31,7 +32,22 @@ function AddressPage(props) {
 			successfullyCreatedID: state.booking.successfullyCreatedID,
 			tempBookingID: state.booking.tempBookingID,
 		}));
-
+	const addressValidation = yup.object().shape({
+		email: yup
+			.string()
+			.email()
+			.required('Email is Required'),
+		mobileNumber: yup
+			.string()
+			.required('Mobile Number is Required'),
+		address: yup
+			.string()
+			.required('Address is Required'),
+		postcode: yup
+			.string()
+			.required('Postcode is Required'),
+	}
+	)
 	const createBookingCB = () => {
 		console.log("createe2")
 		if (bookingLoading) {
@@ -78,38 +94,39 @@ function AddressPage(props) {
 	}, [cart])
 
 	const onChange = (changed, value, values) => {
-		console.log("onChangee", changed, value,values)
+		console.log("onChangee", changed, value, values)
 		if (changed === "postcode") {
 			if (postcodeInterval !== null) {
 				clearTimeout(postcodeInterval);
 			}
 			setPostcodeInterval(setTimeout(() => {
-				
+
 				dispatch(validateBooking(value, true))
 			}, 2000))
 		}
 		let services = [];
 		cart.map(item => services.push({ code: item.code }));
-		dispatch(recordBookingInformation({...values, [changed]:value}));
+		dispatch(recordBookingInformation({ ...values, [changed]: value }));
 	}
 
 	return (
 		<View className="service-summary">
-			<ScrollView 
-      className="summary-wrapper">
+			<ScrollView
+				className="summary-wrapper">
 				<View><MobileCartInfo total={total} cart={cart} /></View>
 				<View className="summary-col">
-					
+
 					<Formik
+						validationSchema={addressValidation}
 						onSubmit={onFinish}
 						{...layout}
 						name="basic"
 						initialValues={info || {}}
-						// validateOnChange={onChange}
-						>
-						{({ handleChange, handleBlur, handleSubmit, setFieldValue, values }) => (
-							<ProfileInfo onChange={onChange} setFieldValue={setFieldValue} handleChange={handleChange} values={values} handleBlur={handleBlur} >
-								<StepsNavigationFooter title="Proceed"   onNext={handleSubmit} onPrev={props.onPrev} />
+					// validateOnChange={onChange}
+					>
+						{({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors }) => (
+							<ProfileInfo errors={errors} onChange={onChange} setFieldValue={setFieldValue} handleChange={handleChange} values={values} handleBlur={handleBlur} >
+								<StepsNavigationFooter title="Proceed" onNext={handleSubmit} onPrev={props.onPrev} />
 							</ProfileInfo>
 						)}
 					</Formik>

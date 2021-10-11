@@ -1,5 +1,5 @@
 // import { Result, Steps } from 'antd';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, Suspense, useEffect, useState } from 'react';
 import Service from './ServicesPage'
 import AddressPage from '../AddressPage';
 // import Layout from '../../components/Common/Layout';
@@ -27,6 +27,7 @@ import jwt_decode from "jwt-decode";
 import PaymentPage from '../PaymentPage';
 import * as AppAuth from "expo-auth-session";
 import moment from 'moment'
+import { useAuth0 } from '../../network/auth0';
 
 const auth0Domain = "https://dev-nebce-qf.eu.auth0.com";
 const auth0ClientId = "Z40hKySNWVoHEJsbYv8qiF9AHwjmPBDO"
@@ -45,99 +46,33 @@ const customIcon = () => (
 
 function Flow(props) {
   const navigation = useNavigation();
+  // const navigation = props.navigation;
   const params = props.route.params;
   const dispatch = useDispatch();
-  const [isAuthenticated, setAuthenticated] = useState(false);
+  const {user,login} = useAuth0();
   // const { isLoading, isAuthenticated, loginWithRedirect } = useAuth0();
   
   const [bookingId, setBookingId] = useState();
   const { loading } = useSelector(state => ({
     loading: state.global.loading,
   }));
-
+  console.log("navv", navigation)
   useEffect(() => {
     initStripe({
         publishableKey: "pk_test_51I6lrfK9emjoqqZwpkWpv1Qx4ZPhA5RzFrk5xrahOYq7zDgLy0bvmydC9z4aD7FHJ92JkN7QRAh6o7S3n5nfaW4X00hx6vnqgF",
         merchantIdentifier: 'merchant.identifier',
       });
     // window.scrollTo(0, 0)
-    console.log("detectLogin")
-    detectLogin();
     if (Number(params.step) !== 1 && Number(params.step) !== 2 && Number(params.step) !== 3 && Number(params.step) !== 4) {
       // history.replace("/service/" + params.type + "/1")
-      navigation.navigate({ name: 'Service', params: { type: params.type, step: "1" } })
+      navigation.navigate({ page: 'Service', params: { type: params.type, step: "1" } })
     }
     if (params.type === 'self') {
       dispatch(getServiceInputs());
     }
   }, [])
-
-  const detectLogin = async () => {
-
-    AsyncStorage.getItem("accessToken").then(accessToken => {
-      var decoded = jwt_decode(accessToken);
-      if (decoded.exp > moment().unix()) {
-        console.log("aaaa")
-        setAuthenticated(true);
-      } else {
-        console.log("bbbb")
-        setAuthenticated(false);
-      }
-    })
-  }
-
-
-  const loginWithRedirect = async () => {
-    const redirectUrl = AppAuth.makeRedirectUri({ useProxy: true });
-
-    const discovery = await AppAuth.fetchDiscoveryAsync(auth0Domain);
-    const authRequestOptions = {
-      usePKCE: true,
-      responseType: AppAuth.ResponseType.Code,
-      clientId: auth0ClientId,
-      redirectUri: redirectUrl,
-      prompt: AppAuth.Prompt.Login,
-      scopes: ["openid", "profile", "email", "offline_access", "crud:list"],
-      extraParams: {
-        audience: "esclot-api",
-        access_type: "offline",
-      },
-    };
-    const authRequest = new AppAuth.AuthRequest(authRequestOptions);
-
-    const authorizeResult = await authRequest.promptAsync(discovery, {
-      useProxy: true,
-    });
-    console.log("authResult", authorizeResult)
-    const tokenResult = await AppAuth.exchangeCodeAsync(
-      {
-        code: authorizeResult.params.code,
-        clientId: auth0ClientId,
-        redirectUri: redirectUrl,
-        extraParams: {
-          code_verifier: authRequest.codeVerifier || "",
-        },
-      },
-      discovery
-    );
-    console.log("Authorize result", tokenResult);
-
-    if (tokenResult.accessToken) {
-      let token = tokenResult.accessToken;
-      AsyncStorage.setItem("accessToken", token).then(
-        result => {
-          console.log("accessTokenSet", result)
-         
-
-          setAuthenticated(true)
-        }
-
-      )
-    }
-  }
   
   const next = async (val) => {
-    await detectLogin();
     val && setBookingId(val);
     navigation.navigate({ name: 'Service', params: { type: params.type, step: (params.step ? Number(params.step) + 1 : 1) } })
     
@@ -147,22 +82,20 @@ function Flow(props) {
   };
 
   const prev = () => {
-    navigation.navigate({ name: 'Service', params: { type: params.type, step: (params.step ? Number(params.step) - 1 : 1) } })
+    navigation.navigate({ page: 'Service', params: { type: params.type, step: (params.step ? Number(params.step) - 1 : 1) } })
 
     // navigation.navigate("/service/" + params.type + "/" + (params.step ? Number(params.step) - 1 : 1))
     // history.push("/service/" + params.type + "/" + (params.step ? Number(params.step) - 1 : 1))
     // window.scrollTo(0, 0)
   };
-  console.log("login with", isAuthenticated)
-    if (!isAuthenticated && (params.step === 2 || params.step === 3 || params.step === 4)) {
+    if (!user && (params.step === 2 || params.step === 3 || params.step === 4)) {
   
-      loginWithRedirect();
+      login();
       return null;
     }
-
+console.log("user", user)
   return (
     <>
-      {loading && <Loading />}
       <Layout type="small">
         {/* <Service onNext={next} params={props.route.params}/> */}
         <ProgressSteps 
@@ -186,7 +119,7 @@ function Flow(props) {
        
           <ProgressStep topOffset={10} removeBtnRow={true} scrollable={false} label="Your Address">
             <View >
-              <AddressPage onNext={next} params={props.route.params} />
+              <TimeSlotPage onNext={next} params={props.route.params} />
             </View>
           </ProgressStep>
           <ProgressStep topOffset={10} removeBtnRow={true} scrollable={false} label="Time">
@@ -228,6 +161,7 @@ function Flow(props) {
 
 
       </Layout>
+      {loading && <Loading />}
     </>
   )
 }

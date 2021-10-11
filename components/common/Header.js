@@ -1,22 +1,33 @@
 import { View, StyleSheet, Image, TouchableOpacity, LogBox, TextInput } from 'react-native';
 import React, { useState } from 'react';
+import { Formik } from 'formik';
+import { useDispatch, useSelector } from 'react-redux';
+import * as yup from 'yup';
 import { useNavigation } from '@react-navigation/native';
 import RadioForm, { RadioButton, RadioButtonInput, RadioButtonLabel } from 'react-native-simple-radio-button';
 import { DrawerActions } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
-import {  validatePostcode } from '../../actions/BookingActions';
+import { validatePostcode } from '../../actions/BookingActions';
 import Text from './Text';
 import Button from './Button';
-import { Formik } from 'formik';
-import { useDispatch } from 'react-redux';
-
+import { Icon } from 'react-native-elements'
 
 function Header(props) {
   const navigation = useNavigation();
   const [valueIndex, setValueIndex] = useState(1);
   const route = useRoute();
   const dispatch = useDispatch();
+
+  const { postcodeError } = useSelector(state => ({
+    postcodeError: state.booking.postcodeError,
+  }));
   const toggleDrawer = () => navigation.dispatch(DrawerActions.toggleDrawer());
+  const postcodeValidation = yup.object().shape({
+    postcode: yup
+      .string()
+      .required('Postcode is Required'),
+
+  })
 
   var radio_props = [
     { label: 'SELF-MEASURE GARMENTS', value: 0 },
@@ -25,21 +36,22 @@ function Header(props) {
   onPress = (i) => {
     setValueIndex(i);
   }
-  const checkPostcode = (val) =>{
+  const checkPostcode = (val) => {
     console.log("aaa", val)
-    dispatch(validatePostcode(val.postcode, val.radio === 1 ? 'prime' :'self', navigation))
+    dispatch(validatePostcode(val.postcode, val.radio === 1 ? 'prime' : 'self', navigation))
   }
   return (
     <>
       {props.type === "small" &&
         <View style={styles.smallHeader}>
           <View style={styles.headerContainer}>
-            <View />
-            <View style={styles.header2}>
+            <TouchableOpacity onPress={()=>navigation.goBack()} style={{ padding: 10, paddingBottom: 15 }}><Icon size={20} color="white" type="antdesign" name='left' /></TouchableOpacity>
+            <TouchableOpacity style={styles.header2} onPress={()=>navigation.navigate({name:"Home"})}>
               <Image style={styles.image} source={require("./esclot-logo.png")} />
-            </View>
+            </TouchableOpacity >
             <View>
               <TouchableOpacity
+                style={{ padding: 10, paddingBottom: 15 }}
                 onPress={toggleDrawer}
                 testID="CustomHeader-toggleDrawer">
                 <Image style={styles.menuIcon} source={require('./menu.png')} />
@@ -55,13 +67,13 @@ function Header(props) {
       {props.type === "full" &&
         <View style={styles.header}>
           <View style={styles.headerContainer}>
-            <View />
-            <View style={styles.header2}>
+           <View/>
+            <View style={{...styles.header2,paddingLeft:45}}>
               <Image style={styles.image} source={require("./esclot-logo.png")} />
             </View>
             <View>
               <TouchableOpacity
-              style={{padding:10, paddingBottom:15}}
+                style={{ padding: 10, paddingBottom: 15 }}
                 onPress={toggleDrawer}
                 testID="CustomHeader-toggleDrawer">
                 <Image style={styles.menuIcon} source={require('./menu.png')} />
@@ -79,12 +91,13 @@ function Header(props) {
                 <Radio value="prime">PREMIUM TAILOR VISIT</Radio>
               </Radio.Group> */}
             <Formik
+              validationSchema={postcodeValidation}
               onSubmit={values => checkPostcode(values)}
               name="basic"
               initialValues={{}}
             // validateOnChange={onChange}
             >
-              {({ handleChange, handleBlur, handleSubmit,setFieldValue, values }) => (
+              {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors }) => (
                 <>
                   <RadioForm
                     formHorizontal={false}
@@ -96,10 +109,11 @@ function Header(props) {
                         <RadioButton labelHorizontal={true} key={i} >
                           {/*  You can set RadioButtonLabel before RadioButtonInput */}
                           <RadioButtonInput
+                            name="radio"
                             obj={obj}
                             index={i}
                             isSelected={valueIndex === i}
-                            onPress={(i)=>{onPress(i); setFieldValue('radio',i)}}
+                            onPress={(i) => { onPress(i); setFieldValue('radio', i) }}
                             borderWidth={1}
                             buttonInnerColor={'#F7A116'}
                             buttonOuterColor={'#F7A116'}
@@ -122,6 +136,7 @@ function Header(props) {
                   </RadioForm>
                   <View style={styles.inputWrapper}>
                     <TextInput
+                      name="postcode"
                       style={styles.input}
                       placeholderTextColor='#d2d2d2'
                       placeholder="Enter Your Postcode"
@@ -134,6 +149,13 @@ function Header(props) {
                     </Button>
                     {/* <Button>Schedule</Button> */}
                   </View>
+               
+                  {errors.postcode &&
+                    <Text style={styles.errorStyle}>{errors.postcode}</Text>
+                  }
+                   {postcodeError &&
+                    <Text style={styles.errorStyle}>{postcodeError}</Text>
+                  }
                 </>
               )}
 
@@ -151,6 +173,7 @@ function Header(props) {
                 <Button type='white' htmlType="submit">SCHEDULE</Button>
               </Form> */}
             </View>
+            
 
           </View>
         </View>
@@ -161,6 +184,17 @@ function Header(props) {
   );
 }
 const styles = StyleSheet.create({
+  errorStyle:{
+    fontSize: 10, 
+    color: '#F7A116',
+    bottom:-50,
+    position:'absolute',
+    left:0,
+    right:0,
+    textAlign:'center',
+    fontSize: 13
+  
+  },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
@@ -193,7 +227,7 @@ const styles = StyleSheet.create({
     height: 20
   },
   header2: {
-    flex: 1,
+    // flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     paddingLeft: 20,
@@ -204,6 +238,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     minHeight: 70,
+    width:'100%'
   },
   chooseServiceWrapper: {
     borderWidth: 1,

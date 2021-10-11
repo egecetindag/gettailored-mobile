@@ -5,6 +5,7 @@ export default function Loading(props) {
     return (
         <View style={styles.loading}>
           <ActivityIndicator color="#F7A116" size="large"/>
+          
         </View>
     );
 }

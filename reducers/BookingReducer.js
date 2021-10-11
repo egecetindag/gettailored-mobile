@@ -82,22 +82,25 @@ export default (state = INITIAL_STATE, action) => {
       return {
         ...state,
         bookingValidation: 'error',
-        bookingValidationError: action.error
+        bookingValidationError: action.error?.message
       }
     case type.VALIDATE_POSTCODE_SUCCESS:
       return {
         ...state,
-        postcodeSuccess: true
+        postcodeSuccess: true,
+        postcodeError: undefined
       }
     case type.VALIDATE_POSTCODE_REQUEST:
       return {
         ...state,
-        postcodeSuccess: false
+        postcodeSuccess: false,
+        postcodeError: undefined,
       }
     case type.VALIDATE_POSTCODE_FAILURE:
       return {
         ...state,
-        postcodeSuccess: false
+        postcodeSuccess: false,
+        postcodeError: action.error
       }
     ////// GET BOOKING
     case type.GET_BOOKINGS_SUCCESS:

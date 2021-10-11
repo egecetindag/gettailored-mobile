@@ -100,16 +100,28 @@ function TimeSlotPage(props) {
         });
         return isL;
     }
-    const disabledDate = (current) => {
+    // const disabledDate = (current) => {
+    //     // Can not select days before today and today
+    //     return current && current < moment().endOf('day');
+    // }
+    // const disabledDeliveryDate = (current) => {
+    //     // Can not select days before today and today
+    //     if (isLaundyInCart()) {
+    //         return current && current < moment(form.getFieldsValue().pickupDate).add(3, 'days');
+    //     }
+    //     return current && current < moment(form.getFieldsValue().pickupDate).add(2, 'days');
+    // }
+      const disabledDate = (current) => {
         // Can not select days before today and today
-        return current && current < moment().endOf('day');
+        return moment().endOf('day');
     }
     const disabledDeliveryDate = (current) => {
         // Can not select days before today and today
+       
         if (isLaundyInCart()) {
-            return current && current < moment(form.getFieldsValue().pickupDate).add(3, 'days');
+            return moment(timeValues.pickupDate, "YYYY-MM-DDT").add(3, 'days');
         }
-        return current && current < moment(form.getFieldsValue().pickupDate).add(2, 'days');
+        return moment(timeValues.pickupDate, "YYYY-MM-DDT").add(2, 'days');
     }
     useEffect(() => {
         let total = cart.reduce((a, { cost }) => a + cost, 0);
@@ -134,7 +146,7 @@ function TimeSlotPage(props) {
         }, props.onNext))
 
     }
-
+    console.log("selammm", timeValues)
     return (
         <ScrollView className="time-slot-page">
             {window.innerWidth < 768 && <View><MobileCartInfo total={total} cart={cart} /></View>}
@@ -173,6 +185,7 @@ function TimeSlotPage(props) {
                                     label="Pickup Date"
                                     name="pickupDate"
                                     type="date"
+                                    pickerType="first"
                                     values={values}
                                     activeHour={timeValues.pickupSlot}
                                     selectedDate={timeValues.pickupDate}
@@ -186,6 +199,7 @@ function TimeSlotPage(props) {
                                     <TimeSlotPicker onSelectHour={onSelectDeliveryHour}
                                         selectedDate={timeValues.deliveryDate}
                                         label="Delivery Date"
+                                        pickerType="second"
                                         activeHour={timeValues.deliverySlot}
                                         name="deliveryDate"
                                         timeslots={deliveryTimeslots}

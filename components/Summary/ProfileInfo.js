@@ -24,52 +24,61 @@ function ProfileInfo(props) {
     const tailLayout = {
         wrapperCol: { offset: 8, span: 16 },
     };
-    const onPostcodeChange = (e, c) => {
-
-
-    }
- 
+    const {errors} = props;
+ console.log("errr", errors)
     return (
         <View style={styles.profileInfo}>
             <View className="title"><Text style={{ fontSize: 18, marginBottom:30 }}>Shipping Information</Text></View>
             <View>
                 <View style={styles.label}><Text>* Email</Text></View>
                 <TextInput
-                    style={styles.inputStyle}
+                    style={errors.email ? {...styles.inputStyle, borderColor:'#F7A116'} : styles.inputStyle}
                     onChangeText={(value) => {props.setFieldValue('email', value); props.onChange('email', value, props.values)}}
                     // onBlur={props.handleBlur('email')}
                     value={props.values.email}
                 />
+                   {errors.email &&
+                    <Text style={styles.errorStyle}>{errors.email}</Text>
+                  }
             </View>
+         
             <View>
                 <View style={styles.label}><Text>* Mobile Number</Text></View>
                 <TextInput
                     placeholder="+44**********"
                     keyboardType="numbers-and-punctuation"
-                    style={styles.inputStyle}
+                    style={errors.mobileNumber ? {...styles.inputStyle, borderColor:'#F7A116'} : styles.inputStyle}
                     onChangeText={(value) => {props.setFieldValue('mobileNumber', value); props.onChange('mobileNumber', value, props.values)}}
                     // onBlur={props.handleBlur('mobileNumber')}
                     value={props.values.mobileNumber}
                 />
+                {errors.mobileNumber &&
+                    <Text style={styles.errorStyle}>{errors.mobileNumber}</Text>
+                  }
             </View>
             <View>
                 <View style={styles.label}><Text>* Address</Text></View>
                 <TextInput
-                
-                    style={styles.inputStyle}
+                    style={errors.address ? {...styles.inputStyle, borderColor:'#F7A116'} : styles.inputStyle}
                     onChangeText={(value) => {props.setFieldValue('address', value); props.onChange('address', value, props.values)}}
                     // onBlur={props.handleBlur('addre.ss')}
                     value={props.values.address}
                 />
+                 {errors.address &&
+                    <Text style={styles.errorStyle}>{errors.address}</Text>
+                  }
             </View>
             <View>
                 <View style={styles.label}><Text>* Postcode</Text></View>
                 <TextInput
-                    style={styles.inputStyle}
+                    style={errors.postcode ? {...styles.inputStyle, borderColor:'#F7A116'} : styles.inputStyle}
                     onChangeText={(value)=>{props.setFieldValue('postcode', value); props.onChange('postcode', value, props.values)}}
                     // onBlur={props.handleBlur('postcode')}
                     value={props.values.postcode}
                 />
+                 {errors.postcode &&
+                    <Text style={styles.errorStyle}>{errors.postcode}</Text>
+                  }
             </View>
             {/* <Form.Item
                 label="Name"
@@ -121,6 +130,17 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         paddingRight: 30,
     },
+    errorStyle:{
+        // fontSize: 10, 
+        color: '#F7A116',
+        bottom:10,
+        position:'absolute',
+        left:0,
+ 
+        textAlign:'center',
+        fontSize: 13
+      
+      },
     inputStyle: {
         margin: 0,
         padding: 0,
